@@ -10,7 +10,6 @@ import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 class DatabaseServices {
   addItem(ItemModel item, image) async {
-    await Firebase.initializeApp();
     CollectionReference items = FirebaseFirestore.instance.collection('data');
     var url = await uploadFile(image);
     Map<String, dynamic> data = {
@@ -20,41 +19,49 @@ class DatabaseServices {
       "category": "${item.category}",
       "price": "${item.price}"
     };
-    return items.add(data).then((value) => print(value));
+    var res = await items.add(data);
   }
 
   Future<List<ItemModel>> getAllItems() async {
+    List<ItemModel> itemList = [];
     try {
       await Firebase.initializeApp();
-      CollectionReference items = await FirebaseFirestore.instance
-          .collection('data')
-          .withConverter<ItemModel>(
-              fromFirestore: (snapshots, _) =>
-                  ItemModel.fromJson(snapshots.data()!),
-              toFirestore: (snapshots, _) => ItemModel().toJson());
-      var value = await items.get();
-      print(value.docs[0]);
-      return value.docs;
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('data').get();
+      itemList = querySnapshot.docs.map<ItemModel>((doc) {
+        return ItemModel(
+            name: doc["name"],
+            category: doc["category"],
+            description: doc["description"],
+            image: doc["image"],
+            price: doc["price"]);
+      }).toList();
+      return itemList;
     } catch (e) {
       throw "ERROR";
     }
-    throw "ERROR";
   }
 
   Future<List<ItemModel>> getItemsbyCategory(category) async {
-    await Firebase.initializeApp();
-
-    CollectionReference items = FirebaseFirestore.instance.collection('data');
-
-    items.where('category', isEqualTo: "$category").get().then((value) {
-      List<Map> data = [];
-      for (var i = 0; i < value.docs.length; i++) {
-        data.add(jsonDecode(value.docs[i].data().toString()));
-      }
-      print("DATA $data");
-      return data;
-    });
-    return [];
+    List<ItemModel> itemList = [];
+    try {
+      await Firebase.initializeApp();
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('data')
+          .where("category", isEqualTo: category)
+          .get();
+      itemList = querySnapshot.docs.map<ItemModel>((doc) {
+        return ItemModel(
+            name: doc["name"],
+            category: doc["category"],
+            description: doc["description"],
+            image: doc["image"],
+            price: doc["price"]);
+      }).toList();
+      return itemList;
+    } catch (e) {
+      throw "ERROR";
+    }
   }
 
   // updateItems(id) async {

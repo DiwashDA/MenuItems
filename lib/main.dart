@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:menu_items/providers/item_notifier.dart';
 import 'package:menu_items/routes.dart';
@@ -5,6 +6,7 @@ import 'package:menu_items/ui/home_page.dart';
 import 'package:provider/provider.dart';
 
 void main() {
+  Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -15,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => ItemNotifier(),
+      create: (_) => ItemNotifier()..getAllData(),
       child: MaterialApp(
         routes: Routes.routes,
         debugShowCheckedModeBanner: false,

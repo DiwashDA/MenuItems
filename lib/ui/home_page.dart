@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:menu_items/constants/constants.dart';
 import 'package:menu_items/constants/themes.dart';
 import 'package:menu_items/models/data_model.dart';
 import 'package:menu_items/providers/item_notifier.dart';
 import 'package:menu_items/services/database_services.dart';
 import 'package:menu_items/ui/item_form.dart';
+import 'package:menu_items/ui/widgets/menu_widget.dart';
+import 'package:menu_items/ui/widgets/menu_items_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
 
-  final List<String> menuItems = [
-    "Main Page",
-    "Snacks",
-    "Dessert",
-    "Drinks",
-    "Food",
-  ];
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
 
+class _HomePageState extends State<HomePage> {
   int currentIndex = 0;
 
   @override
@@ -82,48 +83,41 @@ class HomePage extends StatelessWidget {
       height: 150,
       child: Center(
         child: ListView.builder(
-          itemCount: menuItems.length,
+          itemCount: Constants.menuItems.length,
           itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: InkWell(
-                onTap: () async {
-                  currentIndex = index;
-                  List<ItemModel> data = index == 0
-                      ? await DatabaseServices().getAllItems()
-                      : await DatabaseServices()
-                          .getItemsbyCategory(menuItems[index]);
-                  Provider.of<ItemNotifier>(context, listen: false)
-                      .itemChange(data);
-                },
-                child: Column(
-                  children: [
-                    Container(
-                      height: 80,
-                      width: 80,
-                      decoration: BoxDecoration(
-                          border: currentIndex == index
-                              ? Border.all(color: Colors.white, width: 3)
-                              : Border.all(color: Colors.transparent),
-                          shape: BoxShape.circle,
-                          gradient: Themes.menuGradient),
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Text(
-                      menuItems[index],
-                      style: Themes.menuLabelStyle,
-                    )
-                  ],
-                ),
-              ),
-            );
+            return MenuCategory(
+                index, Constants.menuItems[index], currentIndex == index, (i) {
+              setState(() {
+                currentIndex = i;
+              });
+            });
           },
           scrollDirection: Axis.horizontal,
           shrinkWrap: true,
         ),
       ),
+    );
+  }
+
+  Future<void> showPrice(price) async {
+    print(price);
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Themes.menuItemBg,
+          content: Text("The item is priced for Rs $price"),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Done'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -136,55 +130,10 @@ class HomePage extends StatelessWidget {
             itemCount: itemNotifier.itemData.length,
             itemBuilder: (context, index) {
               return InkWell(
-                onTap: () {},
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Center(
-                    child: SizedBox(
-                      width: 300,
-                      height: 250,
-                      child: Stack(
-                        children: [
-                          Positioned(
-                            left: 50,
-                            right: 50,
-                            bottom: 0,
-                            child: Container(
-                              padding: const EdgeInsets.only(
-                                  top: 80, left: 20, right: 20),
-                              height: 200,
-                              decoration: BoxDecoration(
-                                  color: Themes.menuItemBg,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                      color: Colors.white, width: 4)),
-                              child: Center(
-                                child: Text(
-                                  itemNotifier.itemData[index].name??"",
-                                  style: Themes.menuItemsTextStyle,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const Positioned(
-                            left: 1,
-                            right: 1,
-                            top: 0,
-                            child: Center(
-                              child: CircleAvatar(
-                                radius: 70,
-                                backgroundImage: NetworkImage(
-                                    "https://www.teenaagnel.com/wp-content/uploads/2019/12/food-photography-in-dubai.jpg"),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
+                  onTap: () {
+                    showPrice(itemNotifier.itemData[index].price);
+                  },
+                  child: MenuItem(itemNotifier.itemData[index]));
             });
       }),
     );
