@@ -151,6 +151,7 @@ class _ItemFormState extends State<ItemForm> {
             category: category);
         Provider.of<ItemNotifier>(context, listen: false)
             .addProduct(item, image);
+        Provider.of<ItemNotifier>(context, listen: false).getAllData();
         Navigator.pop(context);
       },
       child: Container(
