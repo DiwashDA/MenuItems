@@ -1,18 +1,21 @@
 class ItemModel {
-  late String name;
-  late int price;
-  late String category;
-  late String description;
+   String? name;
+   String? price;
+   String? image;
+   String? category;
+   String? description;
 
   ItemModel(
-      {required this.name,
-      required this.price,
-      required this.category,
-      required this.description});
+      { this.name,
+       this.price,
+       this.image,
+       this.category,
+       this.description});
 
   ItemModel.fromJson(Map<String, dynamic> json) {
     name = json['name'] ?? "";
-    price = json['price'];
+    price = json['price'] ?? "";
+    image = json['image'] ?? "";
     category = json['category'] ?? "";
     description = json['description'] ?? "";
   }
@@ -21,6 +24,7 @@ class ItemModel {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['name'] = this.name;
     data['price'] = this.price;
+    data['image'] = this.image;
     data['category'] = this.category;
     data['description'] = this.description;
     return data;
